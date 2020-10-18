@@ -1,25 +1,175 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import styled from 'styled-components';
+import {
+  Button,
+  Card,
+  Col,
+  Layout,
+  Row,
+  Skeleton,
+} from 'antd';
+import logo from './logo';
+import 'antd/dist/antd.css';
 import './App.css';
 
+const { Header, Content, Footer } = Layout;
+const { Meta } = Card;
+
+const Logo = styled(logo)`
+  max-width: 9rem;
+`;
+
+const Intro = styled.div`
+  background: #786dff;
+  padding: 2rem 4rem;
+`;
+
+const Filters = styled.div`
+  padding: 2rem 1rem 1rem;
+
+  > *:not(:last-child) {
+    margin-right: 1rem;
+  }
+`;
+
 function App() {
+  const [tiles, setTiles] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); 
+  const [currentFilter, setcurrentFilter] = useState('all');
+  
+  useEffect(() => {
+    if (tiles === null && !isLoading) {
+      setIsLoading(true);
+      axios({
+        url: 'https://claybuy-merchant-graphql.netlify.app/',
+        method: 'post',
+        data: {
+          query: `
+            {
+              tiles: getTiles {
+                id
+                name
+                tileImage
+                url
+                online
+                instore
+              }
+            }
+          `
+        }
+      }).then((response) => {
+        setTiles(response.data.data.tiles);
+        setIsLoading(false);
+      })
+    }
+  }, [isLoading, tiles])
+
+  const filters = {
+    all: 'All',
+    online: 'Online',
+    instore: 'In Store',
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
+    <Layout className="App">
+      <Header
+        style={{
+          padding: '1rem',
+        }}
+      >
+        <a href="https://www.laybuy.com/nz/" target="_blank" rel="noreferrer noopener">
+          <Logo />
         </a>
-      </header>
-    </div>
+      </Header>
+      <Content>
+        <Intro>
+          <h1>Welcome to Laybuy's merchant directory.</h1>
+          <p>Here you can view all of our awesome partner.</p>
+        </Intro>
+
+        <Filters>
+          {
+            Object.keys(filters).map((filter, index) => (
+              <Button
+                key={`filter-${filter}`}
+                shape="round"
+                size="large"
+                type={currentFilter === filter ? 'primary' : ''}
+                onClick={() => setcurrentFilter(filter)}>
+                  {filters[filter]}
+              </Button>
+            ))
+          }
+        </Filters>
+
+        <Row
+          gutter={[16, 16]}
+          style={{
+            padding: '1rem',
+          }}
+        >
+
+          {
+            isLoading &&
+            Array.from(Array(6), (_, index) => (
+              <Col
+                key={index}
+                sm={12}
+                md={8}
+                lg={8}
+                xl={6}
+                xxl={4}
+              >
+                <Skeleton loading active >
+                  <Card
+                    cover={<Skeleton.Image />}
+                  />
+                </Skeleton>
+              </Col>
+            ))
+          }
+
+          {
+            !isLoading && tiles && tiles.length > 0 && tiles.map((tile) => {
+              const {
+                id,
+                name,
+                url,
+                tileImage,
+              } = tile;
+
+              if (currentFilter !== 'all' && !tile[currentFilter]) {
+                return '';
+              }
+
+              return (
+                <Col
+                  key={id}
+                  sm={12}
+                  md={8}
+                  lg={8}
+                  xl={6}
+                  xxl={4}
+                  onClick={() => window.open(url)}
+                >
+                  <Card
+                    hoverable
+                    cover={<img alt={name} src={tileImage} />}
+                  >
+                    <Meta title={name} description={url} />
+                  </Card>
+                </Col>
+              )
+            })
+          }
+
+        </Row>
+      </Content>
+      <Footer>
+        Demo site by <a href="https://cyrusliew.com" target="_blank" rel="noopener noreferrer">cyrusliew.com</a>
+      </Footer>
+    </Layout>
   );
 }
 
