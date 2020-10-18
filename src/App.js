@@ -22,11 +22,16 @@ const Logo = styled(logo)`
 
 const Intro = styled.div`
   background: #786dff;
+  margin-bottom: 1rem;
   padding: 2rem 4rem;
 `;
 
 const Filters = styled.div`
-  padding: 2rem 1rem 1rem;
+  background: #f0f2f5;
+  padding: 1rem;
+  position: sticky;
+  top: 3.85rem;
+  z-index: 1;
 
   > *:not(:last-child) {
     margin-right: 1rem;
@@ -76,6 +81,9 @@ function App() {
       <Header
         style={{
           padding: '1rem',
+          position: 'sticky',
+          top: '0',
+          zIndex: 1,
         }}
       >
         <a href="https://www.laybuy.com/nz/" target="_blank" rel="noreferrer noopener">
@@ -121,7 +129,7 @@ function App() {
                 xl={6}
                 xxl={4}
               >
-                <Skeleton loading active >
+                <Skeleton loading={isLoading} active >
                   <Card
                     cover={<Skeleton.Image />}
                   />
